@@ -42,6 +42,23 @@ bits of boilerplate left to remove:
   end
 ```
 
+Configure `config/config.exs`:
+
+Secret key. You can use `mix guardian.gen.secret` to get one:
+
+```elixir
+config :phoenix, :format_encoders,
+  "json-api": Poison
+
+config :mime, :types, %{
+  "application/vnd.api+json" => ["json-api"]
+}
+
+config :backend, Backend.Auth.Guardian,
+  issuer: "backend",
+  secret_key: "KobAq3AgI0m6xPqN9y9xvwfpF4J63rYJ9s2+XVvEdHdtMVKYiOJPNemACRE/x5LB"
+```
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
