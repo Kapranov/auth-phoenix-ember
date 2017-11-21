@@ -28,10 +28,25 @@ bits of boilerplate left to remove:
   end
 ```
 
+## Install Authentication packages
+
+```elixir
+  defp deps do
+    [
+      ...
+      {:comeonin, "~> 4.0"},
+      {:bcrypt_elixir, "~> 1.0"},
+      {:ja_serializer, "~> 0.12.0"},
+      {:guardian, "~> 1.0.0"}
+    ]
+  end
+```
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
   * Create and migrate your database with `mix ecto.create && mix ecto.migrate`
+  * Testing an application with `mix test`
   * Start Phoenix endpoint with `mix phx.server`
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
