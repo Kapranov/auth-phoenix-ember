@@ -476,7 +476,7 @@ here: [https://github.com/kapranov/auth-phoenix-ember][7]
 
 Look at result this:
 
-![sign-up](/sign_up.png "Sign Up")
+![sign-up](/frontend/sign_up.png "Sign Up")
 
 [1]: https://github.com/simplabs/ember-simple-auth
 [2]: http://ember-simple-auth.com/api/classes/OAuth2PasswordGrantAuthenticator.html
