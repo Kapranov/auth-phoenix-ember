@@ -1,5 +1,7 @@
 {
   "liveReload": true,
   "watcher": "polling",
-  "disableAnalytics": false
+  "disableAnalytics": false,
+  "proxy-port": 4000,
+  "proxy-host": "localhost"
 }

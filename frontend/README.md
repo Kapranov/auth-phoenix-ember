@@ -474,6 +474,10 @@ Elixir/Phoenix with Guardian. Stay tuned!
 Oh yeah — and if you want to see this app put together, check it out
 here: [https://github.com/kapranov/auth-phoenix-ember][7]
 
+Look at result this:
+
+![sign-up](/sign_up.png "Sign Up")
+
 [1]: https://github.com/simplabs/ember-simple-auth
 [2]: http://ember-simple-auth.com/api/classes/OAuth2PasswordGrantAuthenticator.html
 [3]: http://ember-simple-auth.com/api/classes/OAuth2PasswordGrantAuthenticator.html#property_serverTokenEndpoint
