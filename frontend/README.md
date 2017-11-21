@@ -472,7 +472,7 @@ going to build out a rad authentication feature with Ember and
 Elixir/Phoenix with Guardian. Stay tuned!
 
 Oh yeah — and if you want to see this app put together, check it out
-here: [https://github.com/alvincrespo/auth-example-frontend][7]
+here: [https://github.com/kapranov/auth-phoenix-ember][7]
 
 [1]: https://github.com/simplabs/ember-simple-auth
 [2]: http://ember-simple-auth.com/api/classes/OAuth2PasswordGrantAuthenticator.html
@@ -480,7 +480,7 @@ here: [https://github.com/alvincrespo/auth-example-frontend][7]
 [4]: http://ember-simple-auth.com/api/classes/OAuth2BearerAuthorizer.html
 [5]: http://ember-simple-auth.com/api/classes/SessionService.html#method_authenticate
 [6]: http://rwjblue.com/2017/10/30/async-await-configuration-adventure/
-[7]: https://github.com/alvincrespo/auth-example-frontend
-[8]: https://github.com/alvincrespo/auth-example-backend
+[7]: https://github.com/Kapranov/auth-phoenix-ember/tree/master/frontend
+[8]: https://github.com/Kapranov/auth-phoenix-ember/tree/master/backend
 [9]: https://blog.echobind.com/setting-up-ember-simple-auth-for-registration-26d2e22b9f72
 [10]: https://blog.echobind.com/setting-up-phoenix-1-3-as-an-api-only-app-69ca8aa177ee
