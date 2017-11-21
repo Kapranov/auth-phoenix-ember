@@ -11,8 +11,8 @@ get started quickly. So let’s get started.
 To get started, let’s create a new ember app:
 
 ```bash
-mkdir ember-simple-auth
-cd ember-simple-auth
+mkdir auth-phoenix-ember
+cd    auth-phoenix-ember
 ember new frontend
 ```
 When you run this, you should see something like this:
@@ -32,16 +32,20 @@ Yes, I’m using NPM. Don’t judge me — it works!
 
 Ok, so let’s `cd` into our new application: `cd frontend`.
 
-Update packages and edit `.ember-cli`:
+The update packages and edit `.ember-cli`:
 
 ```
 // .ember-cli
 {
   "liveReload": true,
   "watcher": "polling",
-  "disableAnalytics": false
+  "disableAnalytics": false,
+  "proxy-port": 4000,
+  "proxy-host": "localhost"
 }
 ```
+
+The check and update all a packages:
 
 ```bash
 ncu
@@ -92,7 +96,7 @@ We’ll need to do a couple things here, but essentially our file will be
 transformed to this:
 
 ```javascript
-// auth-example-frontend/app/adapters/application.js
+// frontend/app/adapters/application.js
 import JSONAPIAdapter from 'ember-data/adapters/json-api';
 import DataAdapterMixin from 'ember-simple-auth/mixins/data-adapter-mixin';
 import config from 'frontend/config/environment';
@@ -103,7 +107,6 @@ export default JSONAPIAdapter.extend(DataAdapterMixin, {
   authorizer: 'authorizer:application'
 });
 ```
-
 Here’s what’s happening:
 
 1. We’re utilizing `JSONAPIAdapter`
@@ -127,7 +130,7 @@ let ENV = {
 This essentially means the following:
 
 1. We’ll be defining our `apiUrl` via the proxy option in `ember-cli`
-   (e.g. `ember s --proxy http://localhost:4000`)
+   (e.g. `ember s --proxy http://localhost:4000` or `.ember-cli`)
 2. The `api` is namespaced to `api` (e.g.
    `http://localhost:4000/api/users`
 
@@ -151,7 +154,6 @@ To generate the authenticator we can run:
 ```bash
 ember g authenticator oauth2 --base-class=oauth2
 ```
-
 This should output the following:
 
 ```bash
@@ -246,7 +248,6 @@ import OAuth2Bearer from 'ember-simple-auth/authorizers/oauth2-bearer';
 
 export default OAuth2Bearer.extend();
 ```
-
 **Hooking Up Ember Simple Auth**
 
 We need to hook up the plumbing now that we’re done with configuration.
@@ -269,9 +270,22 @@ export default Route.extend(ApplicationRouteMixin, {
 
 ```
 // app/templates/application.hbs
+<h1>Authentication with Ember Simple Auth</h1>
+<p>{{#link-to "sign-up"}}Sign Up{{/link-to}}</p>
+
 {{outlet}}
 ```
 
+The create dashbourd route:
+
+```bash
+ember g route dashboard
+```
+
+```
+// app/templates/dashboard.hbs
+<h1>Dashboard</h1>
+```
 #### Creating The Sign Up Route
 
 The first thing we need to do here is create our sign-up route.
@@ -279,7 +293,6 @@ The first thing we need to do here is create our sign-up route.
 ```bash
 ember g route sign-up
 ```
-
 You should get this output:
 
 ```bash
@@ -292,7 +305,6 @@ updating router
 installing route-test
   create tests/unit/routes/sign-up-test.js
 ```
-
 Let’s open up the generated sign-up template and put the following in
 there:
 
@@ -421,8 +433,6 @@ But before we do, we need to remove the welcome page. To do that, open
 ```
 
 ```bash
-ember g route dashboard
-
 rm -f -r tests/unit/adapters/
 rm -f -r tests/unit/routes/
 ```
@@ -441,13 +451,50 @@ import JSONAPISerializer from 'ember-data/serializers/json-api';
 export default JSONAPISerializer.extend();
 ```
 
-and install package: `ember-maybe-import-regenerator`
 
-Start the server for testing: `ember s`
+**Slow build time for ember-cli**
 
-You should then be able to visit `http://localhost:4200/tests`,
 
-Start the server: `ember server --proxy http://localhost:4000`
+If usage Babel (ember-cli-babel), to allow you to use ES6 syntax with
+your Ember CLI project. We should insert are lines:
+
+```
+// ember-cli-build.js
+...
+module.exports = function(defaults) {
+  let app = new EmberApp(defaults, {
+    'ember-cli-babel': {
+      includePolyfill: true
+    }
+  });
+
+  return app.toTree();
+};
+```
+
+Without Babel, install the package `ember-maybe-import-regenerator`
+
+```
+// ember-cli-build.js
+'use strict';
+
+const EmberApp = require('ember-cli/lib/broccoli/ember-app');
+
+module.exports = function(defaults) {
+  let app = new EmberApp(defaults, {
+    // 'ember-cli-babel': {
+    //   includePolyfill: true
+    // }
+  });
+
+  return app.toTree();
+};
+```
+
+**Start Frontend Server**
+
+Start the server for testing: `ember s`, and open an url:
+`http://localhost:4200/tests`.
 
 You should then be able to visit `http://localhost:4200/sign-up`,
 
