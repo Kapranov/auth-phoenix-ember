@@ -478,6 +478,9 @@ Look at result this:
 
 ![sign-up](/frontend/sign_up.png "Sign Up")
 
+
+![sign-up animation](/frontend/sign_up.gif "Sign Up")
+
 [1]: https://github.com/simplabs/ember-simple-auth
 [2]: http://ember-simple-auth.com/api/classes/OAuth2PasswordGrantAuthenticator.html
 [3]: http://ember-simple-auth.com/api/classes/OAuth2PasswordGrantAuthenticator.html#property_serverTokenEndpoint
