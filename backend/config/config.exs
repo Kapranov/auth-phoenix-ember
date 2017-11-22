@@ -6,9 +6,7 @@ config :backend,
 config :backend, BackendWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "eLGbT1CAcdSNLk/ajdHwlNIXa5Cl8inLDeLa4K2MqRZ82yEL1nGf8ha8u/4U8OIg",
-  render_errors: [view: BackendWeb.ErrorView, accepts: ~w(json)],
-  pubsub: [name: Backend.PubSub,
-           adapter: Phoenix.PubSub.PG2]
+  render_errors: [view: BackendWeb.ErrorView, accepts: ~w(json)]
 
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

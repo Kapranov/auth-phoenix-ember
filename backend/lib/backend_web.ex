@@ -22,7 +22,6 @@ defmodule BackendWeb do
       use Phoenix.Controller, namespace: BackendWeb
       import Plug.Conn
       import BackendWeb.Router.Helpers
-      import BackendWeb.Gettext
     end
   end
 
@@ -31,12 +30,10 @@ defmodule BackendWeb do
       use Phoenix.View, root: "lib/backend_web/templates",
                         namespace: BackendWeb
 
-      # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_flash: 2, view_module: 1]
 
       import BackendWeb.Router.Helpers
       import BackendWeb.ErrorHelpers
-      import BackendWeb.Gettext
     end
   end
 
@@ -45,13 +42,6 @@ defmodule BackendWeb do
       use Phoenix.Router
       import Plug.Conn
       import Phoenix.Controller
-    end
-  end
-
-  def channel do
-    quote do
-      use Phoenix.Channel
-      import BackendWeb.Gettext
     end
   end
 
