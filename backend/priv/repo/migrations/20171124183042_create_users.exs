@@ -3,8 +3,8 @@ defmodule Backend.Repo.Migrations.CreateUsers do
 
   def change do
     create table(:users) do
-      add :email, :string
-      add :name, :string
+      add :email, :string, null: false
+      add :name, :string, null: false
       add :password, :string
       add :password_hash, :string
       add :is_admin, :boolean, default: false, null: false
