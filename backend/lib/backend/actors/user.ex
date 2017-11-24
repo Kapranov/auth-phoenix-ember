@@ -8,7 +8,7 @@ defmodule Backend.Actors.User do
     field :email, :string
     field :is_admin, :boolean, default: false
     field :name, :string
-    field :password, :string
+    field :password, :string, virtual: true
     field :password_hash, :string
 
     timestamps()
@@ -17,8 +17,18 @@ defmodule Backend.Actors.User do
   @doc false
   def changeset(%User{} = user, attrs) do
     user
-    |> cast(attrs, [:email, :name, :password, :password_hash, :is_admin])
-    |> validate_required([:email, :name, :password, :password_hash, :is_admin])
+    |> cast(attrs, [:email, :name, :password, :is_admin])
+    |> validate_required([:email, :name, :password, :is_admin])
     |> unique_constraint(:email)
+    |> encrypt_password()
+  end
+
+  defp encrypt_password(changeset) do
+    if changeset.valid? && Map.has_key?(changeset.changes, :password) do
+      changeset
+      |> put_change(:password_hash, Comeonin.Bcrypt.hashpwsalt(changeset.changes.password))
+    else
+      changeset
+    end
   end
 end
