@@ -257,6 +257,44 @@ Now, jump in and create your first API resource, perhaps by invoking
 `mix phx.gen.json`, because in Phoenix 1.3 this is where the real
 context-driven fun starts.
 
+
+```elixir
+mix phx.gen.schema Actors.User users email:string:unique name:string password:string password_hash:string is_admin:boolean
+
+mix ecto.migrate create_user
+
+# priv/repo/migrations/20171103004301_create_users.exs
+defmodule Backend.Repo.Migrations.CreateUsers do
+  use Ecto.Migration
+
+  def change do
+    create table(:users) do
+      add :email, :string
+      add :password, :string
+      add :password_hash, :string
+
+      timestamps()
+    end
+
+    create unique_index(:users, [:email])
+  end
+end
+```
+
+```elixir
+Backend.Repo.insert!(%Backend.Actors.User{email: "test@example.com", password: "123456789"})
+```
+
+```elixir
+alias Backend.Repo
+alias Backend.Actors.User
+
+Repo.insert!(%User{
+  email: "test@example.com",
+  password: "123456789"
+})
+```
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
