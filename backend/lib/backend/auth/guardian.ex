@@ -1,7 +1,6 @@
 defmodule Backend.Auth.Guardian do
   use Guardian, otp_app: :backend
 
-  alias Backend.Actors
   alias Backend.Actors.User
 
   def subject_for_token(%User{} = user, _claims) do
