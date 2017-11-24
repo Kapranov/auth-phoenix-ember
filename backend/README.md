@@ -257,21 +257,24 @@ Now, jump in and create your first API resource, perhaps by invoking
 `mix phx.gen.json`, because in Phoenix 1.3 this is where the real
 context-driven fun starts.
 
-
 ```elixir
 mix phx.gen.schema Actors.User users email:string:unique name:string password:string password_hash:string is_admin:boolean
 
 mix ecto.migrate create_user
+```
 
-# priv/repo/migrations/20171103004301_create_users.exs
+```elixir
+# priv/repo/migrations/20171124160435_create_users.exs
 defmodule Backend.Repo.Migrations.CreateUsers do
   use Ecto.Migration
 
   def change do
     create table(:users) do
-      add :email, :string
+      add :email, :string, null: false
+      add :name, :string, null: false
       add :password, :string
       add :password_hash, :string
+      add :is_admin, :boolean, default: false, null: false
 
       timestamps()
     end
@@ -282,17 +285,279 @@ end
 ```
 
 ```elixir
-Backend.Repo.insert!(%Backend.Actors.User{email: "test@example.com", password: "123456789"})
+Backend.Repo.insert!(%Backend.Actors.User{email: "demo@example.com", name: "Demo", password: "123456789", is_admin: true})
+Backend.Repo.insert!(%Backend.Actors.User{email: "test@example.com", name: "Test", password: "987654321", is_admin: false})
 ```
+
+```elixir
+# priv/repo/seeds.exs
+alias Backend.Repo
+alias Backend.Actors.User
+
+Repo.insert!(%User{
+  email: "demo@example.com",
+  name: "Demo",
+  is_admin: true,
+  password: "123456789"
+})
+
+Repo.insert!(%User{
+  email: "test@example.com",
+  name: "Test",
+  is_admin: false,
+  password: "987654321"
+})
+```
+
+```elixir
+# lib/backend/actors/user.ex
+defmodule Backend.Actors.User do
+  use Ecto.Schema
+  import Ecto.Changeset
+  alias Backend.Actors.User
+
+
+  schema "users" do
+    field :email, :string
+    field :is_admin, :boolean, default: false
+    field :name, :string
+    field :password, :string, virtual: true
+    field :password_hash, :string
+
+    timestamps()
+  end
+
+  @doc false
+  def changeset(%User{} = user, attrs) do
+    user
+    |> cast(attrs, [:email, :name, :password, :is_admin])
+    |> validate_required([:email, :name, :password, :is_admin])
+    |> unique_constraint(:email)
+    |> encrypt_password()
+  end
+
+  defp encrypt_password(changeset) do
+    if changeset.valid? && Map.has_key?(changeset.changes, :password) do
+      changeset
+      |> put_change(:password_hash, Comeonin.Bcrypt.hashpwsalt(changeset.changes.password))
+    else
+      changeset
+    end
+  end
+end
+```
+
+```bash
+mkdir lib/backend/auth
+touch lib/backend/auth/guardian.ex
+```
+
+```elixir
+# lib/backend/auth/guardian.ex
+defmodule Backend.Auth.Guardian do
+  use Guardian, otp_app: :backend
+
+  alias Backend.Actors
+  alias Backend.Actors.User
+
+  def subject_for_token(%User{} = user, _claims) do
+    {:ok, user.id}
+  end
+
+  def subject_for_token(_) do
+    {:error, "Unknown resource type"}
+  end
+
+  def resource_from_claims(claims) do
+    {:ok, %{id: claims["sub"]}}
+  end
+end
+```
+
+```bash
+touch lib/backend/actors/actors.ex
+```
+
+```elixir
+# lib/backend/actors/actors.ex
+defmodule Backend.Actors do
+  import Ecto.Query, warn: false
+
+  alias Backend.Repo
+  alias Backend.Actors.User
+
+  def list_users do
+    Repo.all(User)
+  end
+
+  def get_user!(id), do: Repo.get!(User, id)
+
+  def get_user_by(params), do: Repo.get_by(User, params)
+
+  def create_user(%{"attributes" => attrs}) do
+    %User{}
+    |> User.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def update_user(%User{} = user, attrs) do
+    user
+    |> User.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def delete_user(%User{} = user) do
+    Repo.delete(user)
+  end
+
+  def change_user(%User{} = user) do
+    User.changeset(user, %{})
+  end
+end
+```
+
+```bash
+touch lib/backend_web/controllers/user_controller.ex
+touch lib/backend_web/controllers/fallback_controller.ex
+```
+
+```elixir
+# lib/backend_web/controllers/user_controller.ex
+defmodule BackendWeb.UserController do
+  use BackendWeb, :controller
+
+  alias Backend.Actors
+
+  action_fallback BackendWeb.FallbackController
+
+  def index(conn, _params) do
+    users = Actors.list_users()
+    render(conn, "index.json-api", data: users)
+  end
+end
+```
+
+```elixir
+# lib/backend_web/controllers/fallback_controller.ex
+defmodule BackendWeb.FallbackController do
+  use BackendWeb, :controller
+
+  def call(conn, {:error, %Ecto.Changeset{} = changeset}) do
+    conn
+    |> put_status(:unprocessable_entity)
+    |> render(BackendWeb.ChangesetView, "error.json", changeset: changeset)
+  end
+
+  def call(conn, {:error, :not_found}) do
+    conn
+    |> put_status(:not_found)
+    |> render(BackendWeb.ErrorView, :"404")
+  end
+end
+```
+
+```bash
+touch lib/backend_web/views/user_view.ex
+```
+
+```elixir
+# lib/backend_web/views/user_view.ex
+defmodule BackendWeb.UserView do
+  use BackendWeb, :view
+  use JaSerializer.PhoenixView
+
+  attributes [:email, :name, :is_admin]
+
+  def type(_user, _conn), do: "users"
+end
+```
+
+Edit Routes `lib/backend_web/router.ex`:
+
+```elixir
+# lib/backend_web/router.ex
+defmodule BackendWeb.Router do
+  use BackendWeb, :router
+
+  pipeline :api do
+    plug :accepts, ["json", "json-api"]
+    plug JaSerializer.ContentTypeNegotiation
+    plug JaSerializer.Deserializer
+  end
+
+  scope "/api", BackendWeb do
+    pipe_through :api
+    resources "/users", UserController, except: [:new, :edit]
+  end
+end
+```
+
+Check it out are requests:
+
+```bash
+mix phx.routes
+
+user_path  GET     /api/users      BackendWeb.UserController :index
+user_path  GET     /api/users/:id  BackendWeb.UserController :show
+user_path  POST    /api/users      BackendWeb.UserController :create
+user_path  PATCH   /api/users/:id  BackendWeb.UserController :update
+           PUT     /api/users/:id  BackendWeb.UserController :update
+user_path  DELETE  /api/users/:id  BackendWeb.UserController :delete
+
+mix ecto.reset
+mix test
+
+iex -S mix phx.server
+
+require Ecto.Query
+
+alias Backend.Repo
+alias Backend.Actors.User
+
+User |> Ecto.Query.first  |> Repo.one
+```
+The result output:
+
+```bash
+http :4000/api/users
+
+{
+  "data": [
+    {
+      "attributes": {
+        "email": "demo@example.com",
+        "is-admin": true,
+        "name": "Demo"
+      },
+      "id": "1",
+      "type": "users"
+    },
+    {
+      "attributes": {
+        "email": "test@example.com",
+        "is-admin": false,
+        "name": "Test"
+      },
+      "id": "2",
+      "type": "users"
+    }
+  ],
+  "jsonapi": {
+    "version": "1.0"
+  }
+}
+```
+
+The `Ecto.Repo.one` function will only return a struct if there is one
+record in the result from the database. If there is more than one record
+returned, an `Ecto.MultipleResultsError` exception will be thrown. Some
+code that would cause that issue to happen is:
 
 ```elixir
 alias Backend.Repo
 alias Backend.Actors.User
 
-Repo.insert!(%User{
-  email: "test@example.com",
-  password: "123456789"
-})
+User |> Repo.one
 ```
 
 To start your Phoenix server:
